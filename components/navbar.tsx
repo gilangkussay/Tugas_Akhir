@@ -101,21 +101,89 @@ export function Navbar() {
 
         {/* Mobile Menu */}
         {isMenuOpen && (
-          <div className="md:hidden py-4 space-y-4">
+          <div className="md:hidden py-4 space-y-4 border-t">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <input
                 type="search"
                 placeholder="Search products..."
-                className="w-full rounded-lg border bg-background pl-10 pr-4 py-2 text-sm"
+                className="w-full rounded-lg border bg-background pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
               />
             </div>
-            <Link href="/products" className="block py-2 text-sm font-medium">Products</Link>
-            <Link href="/wishlist" className="block py-2 text-sm font-medium">Wishlist</Link>
-            <Link href="/cart" className="block py-2 text-sm font-medium">
-              Cart {mounted && `(${totalItems})`}
-            </Link>
-            <Link href="/login" className="block py-2 text-sm font-medium">Login</Link>
+            
+            <div className="space-y-2">
+              <Link 
+                href="/products" 
+                className="block py-2 px-4 text-sm font-medium hover:bg-accent rounded-lg transition-colors"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Products
+              </Link>
+              
+              <Link 
+                href="/orders" 
+                className="block py-2 px-4 text-sm font-medium hover:bg-accent rounded-lg transition-colors"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Orders
+              </Link>
+              
+              <Link 
+                href="/wishlist" 
+                className="flex items-center justify-between py-2 px-4 text-sm font-medium hover:bg-accent rounded-lg transition-colors"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                <span>Wishlist</span>
+                {mounted && wishlistItems.length > 0 && (
+                  <span className="px-2 py-1 rounded-full bg-red-500 text-xs text-white">
+                    {wishlistItems.length}
+                  </span>
+                )}
+              </Link>
+              
+              <Link 
+                href="/cart" 
+                className="flex items-center justify-between py-2 px-4 text-sm font-medium hover:bg-accent rounded-lg transition-colors"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                <span>Cart</span>
+                {mounted && totalItems > 0 && (
+                  <span className="px-2 py-1 rounded-full bg-primary text-xs text-white">
+                    {totalItems}
+                  </span>
+                )}
+              </Link>
+              
+              <button
+                onClick={toggleTheme}
+                className="w-full flex items-center justify-between py-2 px-4 text-sm font-medium hover:bg-accent rounded-lg transition-colors text-left"
+              >
+                <span>Theme</span>
+                {mounted && theme === 'dark' ? (
+                  <Sun className="h-5 w-5" />
+                ) : (
+                  <Moon className="h-5 w-5" />
+                )}
+              </button>
+              
+              {mounted && isAuthenticated ? (
+                <Link 
+                  href="/profile" 
+                  className="block py-2 px-4 text-sm font-medium hover:bg-accent rounded-lg transition-colors"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Profile
+                </Link>
+              ) : (
+                <Link 
+                  href="/login" 
+                  className="block py-2 px-4 text-sm font-medium hover:bg-accent rounded-lg transition-colors"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Login
+                </Link>
+              )}
+            </div>
           </div>
         )}
       </div>
