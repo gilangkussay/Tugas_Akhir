@@ -247,7 +247,7 @@ export function DeveloperEasterEgg() {
                     <motion.a
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
-                      href="mailto:gilang.kussay@student.unpam.ac.id"
+                      href="mailto:gilangkussay1869@gmail.com"
                       className="flex items-center gap-2 px-6 py-3 bg-white/10 hover:bg-white/20 rounded-xl text-white transition-colors border border-white/20"
                     >
                       <Mail className="w-5 h-5" />
