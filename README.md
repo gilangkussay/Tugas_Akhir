@@ -147,6 +147,26 @@ tugas-akhir-ecommerce/
    
    Buka [http://localhost:3000](http://localhost:3000)
 
+### 🔐 Test Accounts
+
+Untuk keperluan testing dan demonstrasi, gunakan akun berikut:
+
+#### Admin Account
+```
+Email: admin@techstore.com
+Password: admin123
+```
+**Akses:** Dashboard admin, manajemen produk, manajemen order
+
+#### Customer Account
+```
+Email: customer@test.com
+Password: customer123
+```
+**Akses:** Shopping, cart, wishlist, checkout, order history
+
+> **Note:** Akun-akun ini sudah di-setup di database untuk memudahkan testing fitur-fitur aplikasi.
+
 ---
 
 ## 📦 Database Schema
