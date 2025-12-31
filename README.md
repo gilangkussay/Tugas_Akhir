@@ -261,7 +261,7 @@ Proyek ini dibuat untuk keperluan akademik - Tugas Akhir Pemrograman Web Lanjut.
 - **Vercel** - Hosting platform
 - **Supabase** - Backend infrastructure
 - **Unsplash** - Product images
-- **Muhammad Rosdiana, S.Kom., M.Kom.** - Dosen Pembimbing
+- **Muhammad Rosdiana, S.Kom., M.Kom.** - Dosen Mata Kuliah Pemrograman Web II
 - **Universitas Pamulang** - Institusi pendidikan
 
 ---
