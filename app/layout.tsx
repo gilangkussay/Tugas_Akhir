@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "sonner";
 import { ThemeProvider } from "@/components/theme-provider";
+import { DeveloperEasterEgg } from "@/components/developer-easter-egg";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -25,8 +26,10 @@ export default function RootLayout({
         <ThemeProvider defaultTheme="light" storageKey="techstore-theme">
           {children}
           <Toaster position="top-center" richColors />
+          <DeveloperEasterEgg />
         </ThemeProvider>
       </body>
     </html>
   );
 }
+
