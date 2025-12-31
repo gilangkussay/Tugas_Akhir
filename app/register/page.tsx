@@ -7,10 +7,11 @@ import Link from 'next/link'
 import { Mail, Lock, User as UserIcon, UserPlus } from 'lucide-react'
 import { useAuthStore } from '@/stores/auth-store'
 import { toast } from 'sonner'
+import { createBrowserClient } from '@supabase/ssr'
 
 export default function RegisterPage() {
   const router = useRouter()
-  const register = useAuthStore((state) => state.register)
+  const setUser = useAuthStore((state) => state.setUser)
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -18,6 +19,11 @@ export default function RegisterPage() {
     confirmPassword: ''
   })
   const [isLoading, setIsLoading] = useState(false)
+
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -29,17 +35,36 @@ export default function RegisterPage() {
 
     setIsLoading(true)
     
+    const email = formData.email.trim()
+    const password = formData.password.trim()
+
     try {
-      const success = await register(formData.name, formData.email, formData.password)
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: formData.name.trim()
+          }
+        }
+      })
       
-      if (success) {
+      if (authError) throw authError
+
+      if (authData.user) {
+        // Auth store sync (profile will be created by trigger)
+        setUser({
+          id: authData.user.id,
+          name: formData.name,
+          email: formData.email,
+          created_at: new Date().toISOString()
+        })
+        
         toast.success('Account created successfully!')
         router.push('/products')
-      } else {
-        toast.error('Registration failed')
       }
-    } catch (error) {
-      toast.error('Registration failed. Please try again.')
+    } catch (error: any) {
+      toast.error(error.message || 'Registration failed. Please try again.')
     } finally {
       setIsLoading(false)
     }

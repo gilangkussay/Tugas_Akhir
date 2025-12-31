@@ -1,20 +1,51 @@
 'use client'
 
 import { Navbar } from '@/components/navbar'
-import { useOrderStore } from '@/stores/order-store'
 import { formatPrice } from '@/lib/utils'
 import Link from 'next/link'
 import Image from 'next/image'
-import { Package, Clock, Truck, CheckCircle, XCircle } from 'lucide-react'
+import { Package, Clock, Truck, CheckCircle, XCircle, Loader2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { createBrowserClient } from '@supabase/ssr'
+import { useAuthStore } from '@/stores/auth-store'
+import { Order } from '@/types'
 
 export default function OrdersPage() {
+  const { user } = useAuthStore()
+  const [orders, setOrders] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
   const [mounted, setMounted] = useState(false)
-  const orders = useOrderStore((state) => state.orders)
+
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
 
   useEffect(() => {
     setMounted(true)
-  }, [])
+    if (user) {
+      fetchOrders()
+    } else {
+      setLoading(false)
+    }
+  }, [user])
+
+  const fetchOrders = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('orders')
+        .select('*, order_items(*)')
+        .eq('user_id', user?.id)
+        .order('created_at', { ascending: false })
+
+      if (error) throw error
+      setOrders(data || [])
+    } catch (error) {
+      console.error('Error fetching orders:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -50,12 +81,34 @@ export default function OrdersPage() {
     }
   }
 
-  if (!mounted) {
+  if (!mounted || loading) {
     return (
       <div className="min-h-screen">
         <Navbar />
         <div className="container mx-auto px-4 py-16 text-center">
-          <p>Loading...</p>
+          <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
+          <p className="mt-4 text-muted-foreground">Loading your orders...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen">
+        <Navbar />
+        <div className="container mx-auto px-4 py-16 text-center">
+          <Package className="h-24 w-24 mx-auto mb-6 text-muted-foreground" />
+          <h1 className="text-3xl font-bold mb-4">Please Login</h1>
+          <p className="text-muted-foreground mb-8">
+            You need to be logged in to view your orders.
+          </p>
+          <Link
+            href="/login"
+            className="inline-block px-8 py-3 bg-primary text-primary-foreground rounded-lg font-semibold hover:bg-primary/90"
+          >
+            Login Now
+          </Link>
         </div>
       </div>
     )
@@ -104,7 +157,7 @@ export default function OrdersPage() {
                     Order #{order.invoice_number}
                   </Link>
                   <p className="text-sm text-muted-foreground">
-                    {new Date(order.date).toLocaleDateString('id-ID', {
+                    {new Date(order.created_at).toLocaleDateString('id-ID', {
                       year: 'numeric',
                       month: 'long',
                       day: 'numeric',
@@ -127,15 +180,10 @@ export default function OrdersPage() {
 
               {/* Order Items */}
               <div className="space-y-3 mb-4">
-                {order.items.slice(0, 2).map((item, idx) => (
+                {order.order_items.slice(0, 2).map((item: any, idx: number) => (
                   <div key={idx} className="flex gap-4">
-                    <div className="relative w-16 h-16 flex-shrink-0 rounded-lg overflow-hidden bg-muted">
-                      <Image
-                        src={item.product_image}
-                        alt={item.product_name}
-                        fill
-                        className="object-cover"
-                      />
+                    <div className="relative w-16 h-16 flex-shrink-0 rounded-lg overflow-hidden bg-muted flex items-center justify-center">
+                      <Package className="h-8 w-8 text-muted-foreground" />
                     </div>
                     <div className="flex-1">
                       <p className="font-medium text-sm">{item.product_name}</p>
@@ -145,9 +193,9 @@ export default function OrdersPage() {
                     </div>
                   </div>
                 ))}
-                {order.items.length > 2 && (
+                {order.order_items.length > 2 && (
                   <p className="text-sm text-muted-foreground">
-                    +{order.items.length - 2} more item(s)
+                    +{order.order_items.length - 2} more item(s)
                   </p>
                 )}
               </div>

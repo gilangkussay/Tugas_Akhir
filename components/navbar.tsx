@@ -47,6 +47,11 @@ export function Navbar() {
             <Link href="/products" className="text-sm font-medium hover:text-primary transition-colors">
               Products
             </Link>
+            {mounted && useAuthStore.getState().user?.role === 'admin' && (
+              <Link href="/admin" className="text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors">
+                Admin Dashboard
+              </Link>
+            )}
             <Link href="/orders" className="text-sm font-medium hover:text-primary transition-colors">
               Orders
             </Link>

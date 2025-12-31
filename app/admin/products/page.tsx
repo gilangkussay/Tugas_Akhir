@@ -1,7 +1,9 @@
 'use client'
 
+import { SeedButton } from '@/components/admin/seed-button'
+
 import { useEffect, useState } from 'react'
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { createBrowserClient } from '@supabase/ssr'
 import { Product } from '@/types'
 import Link from 'next/link'
 import { Edit, Trash2 } from 'lucide-react'
@@ -9,7 +11,10 @@ import { Edit, Trash2 } from 'lucide-react'
 export default function AdminProductsPage() {
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
-  const supabase = createClientComponentClient()
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
 
   useEffect(() => {
     fetchProducts()
@@ -34,12 +39,40 @@ export default function AdminProductsPage() {
     fetchProducts()
   }
 
+  const deleteProduct = async (id: string, name: string) => {
+    if (!confirm(`Are you sure you want to delete "${name}"? This action cannot be undone.`)) {
+      return
+    }
+
+    const { error } = await supabase
+      .from('products')
+      .delete()
+      .eq('id', id)
+
+    if (error) {
+      console.error('Error deleting product:', error)
+      alert('Failed to delete product')
+    } else {
+      fetchProducts()
+    }
+  }
+
   if (loading) return <div>Loading...</div>
 
   return (
     <div>
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold text-gray-900">Products Management</h1>
+        <div className="flex gap-2">
+          <SeedButton />
+          <Link
+            href="/admin/products/new"
+            className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 inline-flex items-center gap-2"
+          >
+            <span>+</span>
+            Add New Product
+          </Link>
+        </div>
       </div>
 
       <div className="bg-white shadow rounded-lg overflow-hidden">
@@ -95,6 +128,12 @@ export default function AdminProductsPage() {
                   >
                     <Edit className="h-5 w-5 inline" />
                   </Link>
+                  <button
+                    onClick={() => deleteProduct(product.id, product.name)}
+                    className="text-red-600 hover:text-red-900"
+                  >
+                    <Trash2 className="h-5 w-5 inline" />
+                  </button>
                 </td>
               </tr>
             ))}

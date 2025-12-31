@@ -2,33 +2,60 @@
 
 import { Navbar } from '@/components/navbar'
 import { formatPrice } from '@/lib/utils'
-import { CheckCircle } from 'lucide-react'
+import { CheckCircle, Loader2 } from 'lucide-react'
 import Link from 'next/link'
 import { use, useEffect, useState } from 'react'
-import { useOrderStore } from '@/stores/order-store'
+import { createBrowserClient } from '@supabase/ssr'
 import { notFound } from 'next/navigation'
 
 export default function InvoicePage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params)
   const [mounted, setMounted] = useState(false)
-  const getOrderByInvoice = useOrderStore((state) => state.getOrderByInvoice)
+  const [order, setOrder] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
   
   useEffect(() => {
     setMounted(true)
-  }, [])
+    fetchInvoice()
+  }, [resolvedParams.id])
 
-  if (!mounted) {
+  const fetchInvoice = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('orders')
+        .select('*, order_items(*)')
+        .eq('invoice_number', resolvedParams.id)
+        .single()
+
+      if (error || !data) {
+        console.error('Error fetching invoice:', error)
+        setOrder(null)
+      } else {
+        setOrder(data)
+      }
+    } catch (error) {
+      console.error('Error fetching invoice:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (!mounted || loading) {
     return (
       <div className="min-h-screen">
         <Navbar />
         <div className="container mx-auto px-4 py-16 text-center">
-          <p>Loading...</p>
+          <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
+          <p className="mt-4 text-muted-foreground">Loading invoice...</p>
         </div>
       </div>
     )
   }
-
-  const order = getOrderByInvoice(resolvedParams.id)
   
   if (!order) {
     notFound()
@@ -55,7 +82,7 @@ export default function InvoicePage({ params }: { params: Promise<{ id: string }
               <h2 className="text-lg md:text-2xl font-bold mb-1">INVOICE</h2>
               <p className="text-xs md:text-sm text-muted-foreground">#{order.invoice_number}</p>
               <p className="text-xs md:text-sm text-muted-foreground">
-                {new Date(order.date).toLocaleDateString('id-ID', { 
+                {new Date(order.created_at).toLocaleDateString('id-ID', { 
                   day: 'numeric',
                   month: 'short', 
                   year: 'numeric'
@@ -88,7 +115,7 @@ export default function InvoicePage({ params }: { params: Promise<{ id: string }
                 </tr>
               </thead>
               <tbody>
-                {order.items.map((item, index) => (
+                {order.order_items.map((item: any, index: number) => (
                   <tr key={index} className="border-b">
                     <td className="py-2">{item.product_name}</td>
                     <td className="py-2 text-center">{item.quantity}</td>
@@ -102,7 +129,7 @@ export default function InvoicePage({ params }: { params: Promise<{ id: string }
 
           {/* Items - Mobile Cards */}
           <div className="mb-4 space-y-2 md:hidden">
-            {order.items.map((item, index) => (
+            {order.order_items.map((item: any, index: number) => (
               <div key={index} className="p-3 border rounded-lg">
                 <div className="flex justify-between items-start mb-1">
                   <p className="text-sm font-medium flex-1 pr-2">{item.product_name}</p>

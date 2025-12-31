@@ -2,22 +2,30 @@
 
 import { Navbar } from '@/components/navbar'
 import { useCartStore } from '@/stores/cart-store'
-import { useOrderStore } from '@/stores/order-store'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { formatPrice, generateInvoiceNumber } from '@/lib/utils'
 import { toast } from 'sonner'
+import { createBrowserClient } from '@supabase/ssr'
+import { useAuthStore } from '@/stores/auth-store'
+import { Loader2 } from 'lucide-react'
 
 export default function CheckoutPage() {
   const router = useRouter()
   const { items, getTotalPrice, clearCart } = useCartStore()
-  const { addOrder } = useOrderStore()
+  const { user } = useAuthStore()
   const [formData, setFormData] = useState({
-    name: '',
-    phone: '',
-    address: '',
+    name: user?.name || '',
+    phone: user?.phone || '',
+    address: user?.address || '',
     paymentMethod: 'bank_transfer'
   })
+  const [loading, setLoading] = useState(false)
+
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
 
   useEffect(() => {
     if (items.length === 0) {
@@ -25,43 +33,104 @@ export default function CheckoutPage() {
     }
   }, [items.length, router])
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
+    if (!user) {
+      toast.error('Please login to place an order')
+      router.push('/login')
+      return
+    }
+
+    setLoading(true)
     const invoiceNumber = generateInvoiceNumber()
     
-    // Create order object
-    const order = {
-      id: invoiceNumber,
-      invoice_number: invoiceNumber,
-      date: new Date().toISOString(),
-      items: items.filter(item => item.product).map(item => ({
-        id: item.product.id,
-        product_name: item.product.name,
-        product_price: item.product.price,
-        quantity: item.quantity,
-        product_image: item.product.images?.[0] || '/placeholder.png'
-      })),
-      total_amount: getTotalPrice(),
-      payment_method: formData.paymentMethod,
-      payment_status: 'pending' as const,
-      order_status: 'processing' as const,
-      shipping_name: formData.name,
-      shipping_phone: formData.phone,
-      shipping_address: formData.address,
-    }
-    
-    // Save order
-    addOrder(order)
-    
-    // Simulate order creation
-    toast.success('Order placed successfully!')
-    
-    // Clear cart and redirect to invoice
-    setTimeout(() => {
+    try {
+      console.log('Placing order for user:', user.id)
+      
+      // 1. Insert order header
+      const { data: orderData, error: orderError } = await supabase
+        .from('orders')
+        .insert({
+          user_id: user.id,
+          invoice_number: invoiceNumber,
+          total_amount: getTotalPrice(),
+          payment_method: formData.paymentMethod,
+          payment_status: 'pending',
+          order_status: 'processing',
+          tracking_status: 'processing',
+          shipping_name: formData.name,
+          shipping_phone: formData.phone,
+          shipping_address: formData.address,
+        })
+        .select()
+        .single()
+
+      if (orderError) {
+        console.error('Order Header Error:', {
+          message: orderError.message,
+          details: orderError.details,
+          hint: orderError.hint,
+          code: orderError.code
+        })
+        throw orderError
+      }
+
+      console.log('Order header created:', orderData.id)
+
+      // 2. Insert order items
+      const orderItems = items
+        .filter(item => item.product && item.product.id)
+        .map(item => {
+          // Validate UUID format
+          const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+          if (!uuidRegex.test(item.product.id)) {
+            throw new Error(`Invalid Product ID format: ${item.product.id}. Please clear your cart and try again.`)
+          }
+
+          return {
+            order_id: orderData.id,
+            product_id: item.product.id,
+            product_name: item.product.name,
+            product_price: item.product.price,
+            quantity: item.quantity,
+            subtotal: item.product.price * item.quantity
+          }
+        })
+
+      if (orderItems.length === 0) {
+        throw new Error('Cart items are invalid or empty.')
+      }
+
+      console.log('Inserting order items payload:', orderItems)
+
+      const { error: itemsError } = await supabase
+        .from('order_items')
+        .insert(orderItems)
+
+      if (itemsError) {
+        console.error('Raw Order Items Error:', itemsError)
+        console.error('Order Items Error Details:', {
+          message: itemsError.message,
+          details: itemsError.details,
+          hint: itemsError.hint,
+          code: itemsError.code
+        })
+        throw itemsError
+      }
+
+      // 3. Success!
+      toast.success('Order placed successfully!')
       clearCart()
+      
+      // Navigate to invoice
       router.push(`/invoice/${invoiceNumber}`)
-    }, 1000)
+    } catch (error: any) {
+      console.error('Full Checkout Error:', error)
+      toast.error(error.message || 'Failed to place order. Please try again.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -172,9 +241,17 @@ export default function CheckoutPage() {
 
               <button
                 type="submit"
-                className="w-full py-4 bg-primary text-primary-foreground rounded-lg font-semibold text-lg hover:bg-primary/90"
+                disabled={loading}
+                className="w-full py-4 bg-primary text-primary-foreground rounded-lg font-semibold text-lg hover:bg-primary/90 flex items-center justify-center gap-2"
               >
-                Place Order
+                {loading ? (
+                  <>
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                    Placing Order...
+                  </>
+                ) : (
+                  'Place Order'
+                )}
               </button>
             </form>
           </div>

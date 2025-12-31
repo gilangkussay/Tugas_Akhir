@@ -23,6 +23,7 @@ TechStore adalah platform e-commerce modern yang dikhususkan untuk produk IT (ha
 
 ### ✨ Fitur Utama
 
+#### Customer Features
 - 🛍️ **Product Catalog** - Katalog produk dengan filtering berdasarkan kategori
 - 🔍 **Search Functionality** - Pencarian produk real-time
 - 🛒 **Shopping Cart** - Keranjang belanja dengan state management
@@ -30,9 +31,19 @@ TechStore adalah platform e-commerce modern yang dikhususkan untuk produk IT (ha
 - 👤 **User Authentication** - Login dan registrasi dengan Supabase
 - 📦 **Order Management** - Sistem pemesanan dan tracking
 - 💳 **Checkout System** - Proses checkout dengan multiple payment methods
+- ⭐ **Product Reviews** - Review dan rating produk setelah order delivered
 - 📱 **Responsive Design** - Mobile-first design yang optimal di semua device
 - 🌙 **Dark Mode** - Theme switching untuk kenyamanan mata
-- ⚡ **Real-time Updates** - State management dengan Zustand
+
+#### Admin Features
+- 🔐 **Admin Dashboard** - Dashboard dengan statistik real-time
+- 📊 **Analytics** - Total products, orders, revenue tracking
+- ➕ **Product Management** - Create, edit, delete products
+- 🖼️ **Image Upload** - Upload multiple images ke Supabase Storage
+- 📝 **Specifications** - Dynamic product specifications
+- 🚚 **Order Tracking** - Update order status (processing → delivered)
+- 👥 **User Management** - View customer profiles dan orders
+- 🔒 **Access Control** - Middleware protection untuk admin routes
 
 ---
 
@@ -74,7 +85,10 @@ TechStore adalah platform e-commerce modern yang dikhususkan untuk produk IT (ha
 ```
 tugas-akhir-ecommerce/
 ├── app/                      # Next.js App Router
-│   ├── page.tsx             # Homepage
+│   ├── admin/               # Admin dashboard
+│   │   ├── page.tsx        # Dashboard stats
+│   │   ├── products/       # Product management
+│   │   └── orders/         # Order management
 │   ├── products/            # Product pages
 │   ├── cart/                # Shopping cart
 │   ├── checkout/            # Checkout flow
@@ -84,17 +98,25 @@ tugas-akhir-ecommerce/
 │   ├── login/               # Login page
 │   └── register/            # Registration page
 ├── components/              # Reusable components
+│   ├── admin/              # Admin components
 │   ├── navbar.tsx          # Navigation bar
-│   └── product-card.tsx    # Product card component
+│   ├── product-card.tsx    # Product card
+│   ├── reviews-list.tsx    # Reviews display
+│   └── review-form.tsx     # Review submission
 ├── lib/                     # Utilities & helpers
-│   ├── supabase/           # Supabase client & server
+│   ├── supabase-helpers.ts # Supabase utilities
 │   ├── utils.ts            # Utility functions
 │   └── mock-data.ts        # Mock product data
 ├── stores/                  # Zustand stores
 │   ├── cart-store.ts       # Shopping cart state
-│   └── wishlist-store.ts   # Wishlist state
+│   ├── wishlist-store.ts   # Wishlist state
+│   └── auth-store.ts       # Auth state
+├── supabase/                # Database
+│   ├── complete-schema.sql # Complete DB setup
+│   └── DATABASE_SETUP.md   # Setup guide
 ├── types/                   # TypeScript types
 │   └── index.ts            # Type definitions
+├── middleware.ts            # Admin route protection
 └── public/                  # Static assets
 ```
 
@@ -169,17 +191,31 @@ Password: customer123
 
 ---
 
-## 📦 Database Schema
+## 📦 Database Setup
 
-### Tables
+### Quick Setup
 
-- **products** - Katalog produk
+1. **Login ke Supabase Dashboard**
+2. **Buka SQL Editor**
+3. **Copy paste isi file** `supabase/complete-schema.sql`
+4. **Execute SQL**
+5. **Create admin user** (ikuti instruksi di `supabase/DATABASE_SETUP.md`)
+
+### Database Tables
+
+- **profiles** - User profiles dengan role (customer/admin)
 - **categories** - Kategori produk
-- **orders** - Data pesanan
-- **order_items** - Item dalam pesanan
-- **profiles** - Profil pengguna
+- **products** - Katalog produk dengan rating & reviews
+- **wishlist** - Wishlist user
+- **orders** - Orders dengan tracking status
+- **order_items** - Item dalam order
+- **reviews** - Review produk (linked ke orders)
 
-Lihat file `supabase/schema.sql` untuk detail lengkap.
+### Storage
+
+- **product-images** - Bucket untuk product images (public)
+
+📖 **Dokumentasi Lengkap:** Lihat `supabase/DATABASE_SETUP.md`
 
 ---
 

@@ -1,45 +1,73 @@
 'use client'
 
 import { Navbar } from '@/components/navbar'
-import { mockProducts } from '@/lib/mock-data'
 import { useCartStore } from '@/stores/cart-store'
 import { useWishlistStore } from '@/stores/wishlist-store'
 import Image from 'next/image'
 import { notFound } from 'next/navigation'
-import { ShoppingCart, Heart, Star, Truck, Shield, RefreshCw } from 'lucide-react'
+import { ShoppingCart, Heart, Star, Truck, Shield, RefreshCw, Loader2 } from 'lucide-react'
 import { formatPrice } from '@/lib/utils'
 import { toast } from 'sonner'
 import { useState, useEffect, use } from 'react'
 import { Product } from '@/types'
+import { ProductReviewSection } from '@/components/product-review-section'
+import { createBrowserClient } from '@supabase/ssr'
 
 export default function ProductDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const resolvedParams = use(params)
-  const [mounted, setMounted] = useState(false)
+  const [product, setProduct] = useState<Product | null>(null)
+  const [loading, setLoading] = useState(true)
   const [quantity, setQuantity] = useState(1)
   
   const addToCart = useCartStore((state) => state.addItem)
   const { addItem: addToWishlist, removeItem: removeFromWishlist, isInWishlist } = useWishlistStore()
 
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
+
   useEffect(() => {
-    setMounted(true)
+    fetchProduct()
   }, [])
 
-  // Find product by slug
-  const productData = mockProducts.find(p => p.slug === resolvedParams.slug)
+  const fetchProduct = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .eq('slug', resolvedParams.slug)
+        .single()
+
+      if (error) throw error
+      setProduct(data)
+    } catch (error) {
+      console.error('Error fetching product:', error)
+      // Don't strict 404 here to allow UI to handle it gracefully or retry
+    } finally {
+      setLoading(false)
+    }
+  }
   
-  if (!productData) {
+  if (loading) {
+    return (
+      <div className="min-h-screen">
+        <Navbar />
+        <div className="flex justify-center items-center h-[60vh]">
+          <Loader2 className="h-10 w-10 animate-spin text-primary" />
+        </div>
+      </div>
+    )
+  }
+
+  if (!product) {
     notFound()
   }
 
-  const product: Product = {
-    ...productData,
-    is_active: true,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-    specifications: productData.specifications || {}
-  }
+  // Ensure specifications is an object (it might be JSONB from DB)
+  const specifications = product.specifications || {}
 
-  const inWishlist = mounted && isInWishlist(product.id)
+  const inWishlist = isInWishlist(product.id)
 
   const handleAddToCart = () => {
     for (let i = 0; i < quantity; i++) {
@@ -68,14 +96,14 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
           <div className="space-y-4">
             <div className="relative aspect-square overflow-hidden rounded-xl border bg-muted">
               <Image
-                src={product.images[0] || '/placeholder.png'}
+                src={product.images?.[0] || '/placeholder.png'}
                 alt={product.name}
                 fill
                 className="object-cover"
                 priority
               />
             </div>
-            {product.images.length > 1 && (
+            {product.images && product.images.length > 1 && (
               <div className="grid grid-cols-4 gap-2">
                 {product.images.slice(0, 4).map((img, idx) => (
                   <div key={idx} className="relative aspect-square overflow-hidden rounded-lg border cursor-pointer hover:border-primary">
@@ -96,12 +124,12 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
                 {[...Array(5)].map((_, i) => (
                   <Star
                     key={i}
-                    className={`w-5 h-5 ${i < Math.floor(product.rating) ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'}`}
+                    className={`w-5 h-5 ${i < Math.floor(product.rating || 0) ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'}`}
                   />
                 ))}
               </div>
               <span className="text-sm text-muted-foreground">
-                {product.rating.toFixed(1)} ({product.total_reviews} reviews)
+                {(product.rating || 0).toFixed(1)} ({product.total_reviews || 0} reviews)
               </span>
             </div>
 
@@ -122,14 +150,14 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
             </div>
 
             {/* Specifications */}
-            {Object.keys(product.specifications).length > 0 && (
+            {specifications && Object.keys(specifications).length > 0 && (
               <div className="mb-6 p-4 bg-muted/50 rounded-lg">
                 <h3 className="font-semibold mb-3">Specifications</h3>
                 <div className="space-y-2">
-                  {Object.entries(product.specifications).map(([key, value]) => (
+                  {Object.entries(specifications).map(([key, value]) => (
                     <div key={key} className="flex justify-between text-sm">
                       <span className="text-muted-foreground capitalize">{key}:</span>
-                      <span className="font-medium">{value}</span>
+                      <span className="font-medium">{String(value)}</span>
                     </div>
                   ))}
                 </div>
@@ -197,117 +225,11 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
         </div>
 
         {/* Reviews Section */}
-        <div className="border-t pt-8">
-          <h2 className="text-2xl font-bold mb-6">Customer Reviews</h2>
-          
-          {/* Review Summary */}
-          <div className="flex items-center gap-8 mb-8 p-6 bg-muted/30 rounded-lg">
-            <div className="text-center">
-              <div className="text-5xl font-bold text-primary mb-2">{product.rating.toFixed(1)}</div>
-              <div className="flex mb-1">
-                {[...Array(5)].map((_, i) => (
-                  <Star
-                    key={i}
-                    className={`w-5 h-5 ${i < Math.floor(product.rating) ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'}`}
-                  />
-                ))}
-              </div>
-              <p className="text-sm text-muted-foreground">{product.total_reviews} reviews</p>
-            </div>
-            
-            <div className="flex-1">
-              {[5, 4, 3, 2, 1].map((star) => {
-                const percentage = star === 5 ? 70 : star === 4 ? 20 : star === 3 ? 7 : star === 2 ? 2 : 1
-                return (
-                  <div key={star} className="flex items-center gap-2 mb-1">
-                    <span className="text-sm w-12">{star} star</span>
-                    <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
-                      <div 
-                        className="h-full bg-yellow-400"
-                        style={{ width: `${percentage}%` }}
-                      />
-                    </div>
-                    <span className="text-sm text-muted-foreground w-12">{percentage}%</span>
-                  </div>
-                )
-              })}
-            </div>
-          </div>
-
-          {/* Individual Reviews */}
-          <div className="space-y-6">
-            {[
-              {
-                name: 'Budi Santoso',
-                rating: 5,
-                date: '2024-12-15',
-                review: 'Produk sangat bagus! Kualitas premium dan sesuai deskripsi. Pengiriman cepat dan packing rapi. Sangat puas dengan pembelian ini. Highly recommended!',
-                verified: true
-              },
-              {
-                name: 'Siti Nurhaliza',
-                rating: 5,
-                date: '2024-12-10',
-                review: 'Worth it banget! Performa luar biasa, build quality solid. Sudah pakai seminggu dan sangat memuaskan. Seller responsif dan pengiriman cepat.',
-                verified: true
-              },
-              {
-                name: 'Ahmad Rizki',
-                rating: 4,
-                date: '2024-12-05',
-                review: 'Overall bagus, sesuai ekspektasi. Cuma pengiriman agak lama karena stok. Tapi produknya sendiri excellent, no complaint!',
-                verified: true
-              },
-              {
-                name: 'Dewi Lestari',
-                rating: 5,
-                date: '2024-11-28',
-                review: 'Ini pembelian kedua saya di toko ini. Selalu puas dengan kualitas produk dan pelayanan. Fast response, packing aman, produk original. Top!',
-                verified: true
-              },
-              {
-                name: 'Eko Prasetyo',
-                rating: 4,
-                date: '2024-11-20',
-                review: 'Produk bagus dan original. Harga kompetitif. Sedikit minus di packaging yang bisa lebih baik lagi. Overall recommended!',
-                verified: false
-              }
-            ].map((review, idx) => (
-              <div key={idx} className="border-b pb-6 last:border-0">
-                <div className="flex items-start justify-between mb-3">
-                  <div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="font-semibold">{review.name}</span>
-                      {review.verified && (
-                        <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">
-                          Verified Purchase
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="flex">
-                        {[...Array(5)].map((_, i) => (
-                          <Star
-                            key={i}
-                            className={`w-4 h-4 ${i < review.rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'}`}
-                          />
-                        ))}
-                      </div>
-                      <span className="text-sm text-muted-foreground">
-                        {new Date(review.date).toLocaleDateString('id-ID', { 
-                          year: 'numeric', 
-                          month: 'long', 
-                          day: 'numeric' 
-                        })}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-                <p className="text-muted-foreground">{review.review}</p>
-              </div>
-            ))}
-          </div>
-        </div>
+        <ProductReviewSection 
+          productId={product.id}
+          productRating={product.rating || 0}
+          totalReviews={product.total_reviews || 0}
+        />
       </div>
     </div>
   )

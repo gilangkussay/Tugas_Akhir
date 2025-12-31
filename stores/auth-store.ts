@@ -8,14 +8,14 @@ export interface User {
   phone?: string
   address?: string
   avatar?: string
+  role?: 'customer' | 'admin'
   created_at: string
 }
 
 interface AuthStore {
   user: User | null
   isAuthenticated: boolean
-  login: (email: string, password: string) => Promise<boolean>
-  register: (name: string, email: string, password: string) => Promise<boolean>
+  setUser: (user: User | null) => void
   logout: () => void
   updateProfile: (data: Partial<User>) => void
 }
@@ -26,38 +26,8 @@ export const useAuthStore = create<AuthStore>()(
       user: null,
       isAuthenticated: false,
       
-      login: async (email: string, password: string) => {
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 500))
-        
-        // Mock login - in real app, validate with backend
-        const user: User = {
-          id: '1',
-          name: 'John Doe',
-          email: email,
-          phone: '08123456789',
-          address: 'Jl. Sudirman No. 123, Jakarta',
-          created_at: new Date().toISOString(),
-        }
-        
-        set({ user, isAuthenticated: true })
-        return true
-      },
-      
-      register: async (name: string, email: string, password: string) => {
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 500))
-        
-        // Mock registration
-        const user: User = {
-          id: Date.now().toString(),
-          name,
-          email,
-          created_at: new Date().toISOString(),
-        }
-        
-        set({ user, isAuthenticated: true })
-        return true
+      setUser: (user) => {
+        set({ user, isAuthenticated: !!user })
       },
       
       logout: () => {

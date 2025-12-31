@@ -12,14 +12,19 @@ interface CartStore {
   getTotalItems: () => number
 }
 
+const isUUID = (id: string) => {
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+  return uuidRegex.test(id)
+}
+
 export const useCartStore = create<CartStore>()(
   persist(
     (set, get) => ({
       items: [],
       
       addItem: (product) => {
-        if (!product || !product.id) {
-          console.error('Invalid product:', product)
+        if (!product || !product.id || !isUUID(product.id)) {
+          console.error('Refused to add invalid product (must be UUID):', product)
           return
         }
         
@@ -78,6 +83,18 @@ export const useCartStore = create<CartStore>()(
     }),
     {
       name: 'cart-storage',
+      onRehydrateStorage: () => (state) => {
+        if (state) {
+          // Auto-clean stale mock data (non-UUID IDs) on startup
+          const validItems = state.items.filter(item => 
+            item.product && item.product.id && isUUID(item.product.id)
+          )
+          if (validItems.length !== state.items.length) {
+            console.log(`Cleaned ${state.items.length - validItems.length} stale mock items from cart.`)
+            state.items = validItems
+          }
+        }
+      }
     }
   )
 )

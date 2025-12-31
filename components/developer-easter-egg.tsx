@@ -17,6 +17,8 @@ export function DeveloperEasterEgg() {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (!e.key) return // Guard against undefined key
+      
       const key = e.key.toLowerCase()
       
       if (key === konamiCode[konamiIndex] || e.key === konamiCode[konamiIndex]) {

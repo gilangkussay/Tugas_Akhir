@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { createBrowserClient } from '@supabase/ssr'
 import { Package, ShoppingCart, Clock, DollarSign } from 'lucide-react'
 import { AdminStats } from '@/types'
 
@@ -13,7 +13,10 @@ export default function AdminDashboard() {
     totalRevenue: 0
   })
   const [recentOrders, setRecentOrders] = useState<any[]>([])
-  const supabase = createClientComponentClient()
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
 
   useEffect(() => {
     fetchStats()
