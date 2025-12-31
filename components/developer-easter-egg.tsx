@@ -167,7 +167,7 @@ export function DeveloperEasterEgg() {
                         </p>
                         <p className="font-mono">NIM: 221011401208</p>
                         <p>Kelas: 07TPLM006</p>
-                        <p className="text-sm text-blue-300">Politeknik Negeri Malang</p>
+                        <p className="text-sm text-blue-300">Universitas Pamulang</p>
                       </div>
                     </div>
                   </div>
@@ -247,7 +247,7 @@ export function DeveloperEasterEgg() {
                     <motion.a
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
-                      href="mailto:gilang.kussay@student.polinema.ac.id"
+                      href="mailto:gilang.kussay@student.unpam.ac.id"
                       className="flex items-center gap-2 px-6 py-3 bg-white/10 hover:bg-white/20 rounded-xl text-white transition-colors border border-white/20"
                     >
                       <Mail className="w-5 h-5" />

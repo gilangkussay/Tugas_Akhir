@@ -262,7 +262,7 @@ Proyek ini dibuat untuk keperluan akademik - Tugas Akhir Pemrograman Web Lanjut.
 - **Supabase** - Backend infrastructure
 - **Unsplash** - Product images
 - **Dosen Pengampu** - Bimbingan dan arahan
-- **Politeknik Negeri Malang** - Institusi pendidikan
+- **Universitas Pamulang** - Institusi pendidikan
 
 ---
 
