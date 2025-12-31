@@ -4,31 +4,31 @@ export const mockProducts = [
   {
     id: '1', name: 'MacBook Pro 16" M3 Max', slug: 'macbook-pro-16-m3-max', 
     description: 'Powerful laptop for professionals', price: 45000000, stock: 15,
-    category_id: 'laptops', images: ['https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=500'],
+    category_id: 'laptops', images: ['https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=800&q=80'],
     rating: 4.8, total_reviews: 124, specifications: { processor: 'M3 Max', ram: '32GB', storage: '1TB SSD' }
   },
   {
     id: '2', name: 'Dell XPS 15', slug: 'dell-xps-15',
     description: 'Premium Windows laptop', price: 28000000, stock: 20,
-    category_id: 'laptops', images: ['https://images.unsplash.com/photo-1593642632823-8f785ba67e45?w=500'],
+    category_id: 'laptops', images: ['https://images.unsplash.com/photo-1593642632823-8f785ba67e45?w=800&q=80'],
     rating: 4.6, total_reviews: 98
   },
   {
     id: '3', name: 'ASUS ROG Zephyrus G14', slug: 'asus-rog-g14',
     description: 'Gaming laptop with AMD Ryzen', price: 24000000, stock: 12,
-    category_id: 'laptops', images: ['https://images.unsplash.com/photo-1603302576837-37561b2e2302?w=500'],
+    category_id: 'laptops', images: ['https://images.unsplash.com/photo-1603302576837-37561b2e2302?w=800&q=80'],
     rating: 4.7, total_reviews: 156
   },
   {
     id: '4', name: 'Lenovo ThinkPad X1 Carbon', slug: 'thinkpad-x1',
     description: 'Business ultrabook', price: 22000000, stock: 18,
-    category_id: 'laptops', images: ['https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=500'],
+    category_id: 'laptops', images: ['https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=800&q=80'],
     rating: 4.5, total_reviews: 87
   },
   {
     id: '5', name: 'HP Spectre x360', slug: 'hp-spectre-x360',
     description: '2-in-1 convertible laptop', price: 26000000, stock: 10,
-    category_id: 'laptops', images: ['https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=500'],
+    category_id: 'laptops', images: ['https://images.unsplash.com/photo-1484788984921-03950022c9ef?w=800&q=80'],
     rating: 4.4, total_reviews: 72
   },
   
@@ -139,7 +139,7 @@ for (let i = 6; i <= 25; i++) {
     price: 15000000 + (i * 100000),
     stock: Math.floor(Math.random() * 30) + 5,
     category_id: 'laptops',
-    images: [`https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=500&sig=${i}`],
+    images: [`https://images.unsplash.com/photo-${1496181133206 + i * 1000}-80ce9b88a853?w=800&q=80`],
     rating: 4 + Math.random(),
     total_reviews: Math.floor(Math.random() * 200) + 50
   })
@@ -154,7 +154,7 @@ for (let i = 31; i <= 65; i++) {
     price: 2000000 + (i * 50000),
     stock: Math.floor(Math.random() * 40) + 10,
     category_id: 'pc-components',
-    images: [`https://images.unsplash.com/photo-1591799264318-7e6ef8ddb7ea?w=500&sig=${i}`],
+    images: [`https://images.unsplash.com/photo-${1591799264318 + i * 1000}-7e6ef8ddb7ea?w=800&q=80`],
     rating: 4 + Math.random(),
     total_reviews: Math.floor(Math.random() * 300) + 100
   })
@@ -169,7 +169,7 @@ for (let i = 71; i <= 95; i++) {
     price: 500000 + (i * 20000),
     stock: Math.floor(Math.random() * 50) + 15,
     category_id: 'accessories',
-    images: [`https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?w=500&sig=${i}`],
+    images: [`https://images.unsplash.com/photo-${1527443224154 + i * 1000}-c4a3942d3acf?w=800&q=80`],
     rating: 4 + Math.random(),
     total_reviews: Math.floor(Math.random() * 400) + 150
   })
