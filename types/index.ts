@@ -24,6 +24,13 @@ export interface Category {
   created_at: string
 }
 
+export type OrderTrackingStatus = 
+  | 'processing' 
+  | 'confirmed' 
+  | 'shipped' 
+  | 'delivered' 
+  | 'cancelled'
+
 export interface Order {
   id: string
   user_id: string
@@ -32,6 +39,9 @@ export interface Order {
   payment_method: 'bank_transfer' | 'e_wallet' | 'cod'
   payment_status: 'pending' | 'paid' | 'failed'
   order_status: 'processing' | 'paid' | 'shipped' | 'completed' | 'cancelled'
+  tracking_status?: OrderTrackingStatus
+  delivered_at?: string
+  can_review?: boolean
   shipping_address: string
   shipping_phone: string
   shipping_name: string
@@ -62,7 +72,28 @@ export interface Profile {
   updated_at: string
 }
 
+export interface Review {
+  id: string
+  product_id: string
+  user_id: string
+  order_id?: string
+  rating: number
+  comment?: string
+  created_at: string
+  user?: {
+    full_name: string
+    email: string
+  }
+}
+
 export interface CartItem {
   product: Product
   quantity: number
+}
+
+export interface AdminStats {
+  totalProducts: number
+  totalOrders: number
+  pendingOrders: number
+  totalRevenue: number
 }
