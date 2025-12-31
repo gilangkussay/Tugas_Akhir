@@ -137,11 +137,11 @@ for (let i = 6; i <= 25; i++) {
     slug: `laptop-model-${i}`,
     description: `High-performance laptop for work and gaming`,
     price: 15000000 + (i * 100000),
-    stock: Math.floor(Math.random() * 30) + 5,
+    stock: ((i * 7) % 30) + 5,
     category_id: 'laptops',
     images: [`https://images.unsplash.com/photo-${1496181133206 + i * 1000}-80ce9b88a853?w=800&q=80`],
-    rating: 4 + Math.random(),
-    total_reviews: Math.floor(Math.random() * 200) + 50
+    rating: 4 + ((i * 3) % 10) / 10,
+    total_reviews: ((i * 13) % 200) + 50
   })
 }
 
@@ -152,11 +152,11 @@ for (let i = 31; i <= 65; i++) {
     slug: `pc-component-${i}`,
     description: `Quality PC hardware component`,
     price: 2000000 + (i * 50000),
-    stock: Math.floor(Math.random() * 40) + 10,
+    stock: ((i * 11) % 40) + 10,
     category_id: 'pc-components',
     images: [`https://images.unsplash.com/photo-${1591799264318 + i * 1000}-7e6ef8ddb7ea?w=800&q=80`],
-    rating: 4 + Math.random(),
-    total_reviews: Math.floor(Math.random() * 300) + 100
+    rating: 4 + ((i * 5) % 10) / 10,
+    total_reviews: ((i * 17) % 300) + 100
   })
 }
 
@@ -167,11 +167,11 @@ for (let i = 71; i <= 95; i++) {
     slug: `accessory-${i}`,
     description: `Premium IT accessory`,
     price: 500000 + (i * 20000),
-    stock: Math.floor(Math.random() * 50) + 15,
+    stock: ((i * 9) % 50) + 15,
     category_id: 'accessories',
     images: [`https://images.unsplash.com/photo-${1527443224154 + i * 1000}-c4a3942d3acf?w=800&q=80`],
-    rating: 4 + Math.random(),
-    total_reviews: Math.floor(Math.random() * 400) + 150
+    rating: 4 + ((i * 7) % 10) / 10,
+    total_reviews: ((i * 19) % 400) + 150
   })
 }
 
